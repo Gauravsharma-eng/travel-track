@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Travel Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #35b1b1;
+      padding: 40px;
+
+      
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .form input, .form button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 250px;
+    }
+
+    #map {
+      height: 400px;
+      margin-top: 20px;
+    }
+
+    #tripList {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    #logoutBtn {
+      margin-top: 10px;
+      background-color: crimson;
+      color: rgb(157, 180, 185);
+      padding: 8px 16px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌍 Travel Tracker</h1>
+    <p id="welcome"></p>
+    <button id="logoutBtn">Logout</button>
+
+    <div class="form">
+      <h3>Add a Trip</h3>
+      <input type="text" id="place" placeholder="City or Place" />
+      <input type="text" id="country" placeholder="Country" />
+      <input type="date" id="date" />
+      <button onclick="addTrip()">Add Trip</button>
+    </div>
+    <div class="map-box">
+      <div id="map"></div>
+      <ul id="tripList-box"></ul>
+    </div>
+    
+    
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Check login
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+
+    if (!username || !email) {
+      alert("Please login first.");
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("welcome").innerText = `Hello, ${username}! (${email})`;
+    }
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("username");
+      localStorage.removeItem("email");
+      localStorage.removeItem("password");
+      window.location.href = "login.html";
+    });
+
+    // Map
+    let map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add trip
+    function addTrip() {
+      const place = document.getElementById("place").value.trim();
+      const country = document.getElementById("country").value.trim();
+      const date = document.getElementById("date").value;
+
+      if (!place || !country || !date) {
+        alert("Please fill in all trip fields.");
+        return;
+      }
+
+      const location = `${place}, ${country}`;
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            const lat = data[0].lat;
+            const lon = data[0].lon;
+            map.setView([lat, lon], 8);
+            L.marker([lat, lon]).addTo(map)
+              .bindPopup(`<b>${place}, ${country}</b><br>Visited on ${date}`).openPopup();
+
+            const li = document.createElement("li");
+            li.textContent = `${place}, ${country} — Visited on ${date}`;
+            document.getElementById("tripList").appendChild(li);
+          } else {
+            alert("Location not found.");
+          }
+        });
+
+      document.getElementById("place").value = "";
+      document.getElementById("country").value = "";
+      document.getElementById("date").value = "";
+    }
+  </script>
+</body>
+</html>

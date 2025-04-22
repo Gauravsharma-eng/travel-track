@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - Travel Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #39c5be;
+      padding: 40px;
+    }
+
+    .container {
+      background-color: rgb(153, 205, 175);
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    input {
+      display: block;
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .toggle-link {
+      color: blue;
+      cursor: pointer;
+      margin-top: 10px;
+      display: block;
+    }
+
+    .form {
+      display: none;
+    }
+
+    .form.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌍 Welcome to Travel Tracker</h1>
+
+    <!-- Login Form -->
+    <div class="form active" id="loginForm">
+      <h3>Login</h3>
+      <input type="text" id="loginUsername" placeholder="Username" />
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <span class="toggle-link" onclick="toggleForm()">Don't have an account? Sign Up</span>
+    </div>
+
+    <!-- Signup Form -->
+    <div class="form" id="signupForm">
+      <h3>Sign Up</h3>
+      <input type="text" id="signupUsername" placeholder="Username" />
+      <input type="email" id="signupEmail" placeholder="Email" />
+      <input type="password" id="signupPassword" placeholder="Password" />
+      <button onclick="signup()">Sign Up</button>
+      <span class="toggle-link" onclick="toggleForm()">Already have an account? Login</span>
+    </div>
+  </div>
+
+  <script>
+    function toggleForm() {
+      document.getElementById("loginForm").classList.toggle("active");
+      document.getElementById("signupForm").classList.toggle("active");
+    }
+
+    function signup() {
+      const username = document.getElementById("signupUsername").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value.trim();
+
+      if (!username || !email || !password) {
+        alert("Please fill all Sign Up fields.");
+        return;
+      }
+
+      localStorage.setItem("username", username);
+      localStorage.setItem("email", email);
+      localStorage.setItem("password", password);
+
+      alert("Sign up successful! Now you can login.");
+      toggleForm();
+    }
+
+    function login() {
+      const username = document.getElementById("loginUsername").value.trim();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      const storedUsername = localStorage.getItem("username");
+      const storedEmail = localStorage.getItem("email");
+      const storedPassword = localStorage.getItem("password");
+
+      if (!username || !email || !password) {
+        alert("Please fill all Login fields.");
+        return;
+      }
+
+      if (
+        username === storedUsername &&
+        email === storedEmail &&
+        password === storedPassword
+      ) {
+        window.location.href = "tracker.html";
+      } else {
+        alert("Invalid credentials. Please Sign Up first.");
+      }
+    }
+  </script>
+</body>
+</html>
