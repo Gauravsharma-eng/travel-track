@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Travel Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e0f7f7;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .form input,
+    .form button {
+      padding: 10px;
+      margin: 10px;
+      width: 220px;
+    }
+
+    #map {
+      height: 400px;
+      margin-top: 20px;
+    }
+
+    #famousPlacesList {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+      width: 400px;
+      margin: auto;
+    }
+
+    .place-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+
+    .place-item-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .place-img {
+      width: 100px;
+      height: 80px;
+      object-fit: cover;
+      margin-right: 10px;
+      border-radius: 8px;
+    }
+
+    .visit-date {
+      margin-left: 110px;
+      color: #555;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🌍 Travel Tracker</h1>
+
+  <div class="form">
+    <input type="text" id="country" placeholder="Enter Country" />
+    <input type="text" id="place" placeholder="Enter City or Place" />
+    <input type="date" id="visitDate" />
+    <button onclick="addTrip()">Add Trip</button>
+  </div>
+
+  <ul id="famousPlacesList"></ul>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const famousPlaces = {
+      India: {
+        Gwalior: [
+          { name: "Gwalior Fort", img: "https://www.indiatravelblog.net/wp-content/uploads/2010/04/The-Gwalior-Fort.jpg" },
+          { name: "Jai Vilas Palace", img: "https://toim.b-cdn.net/pictures/travel_guide/attractions/jai-vilas-palace-head-322.jpeg" },
+          { name: "Sas Bahu Temple", img: "http://s3.india.com/travel/wp-content/uploads/Madhya-Pradesh_Gwalior_Sas-Bahu-Temple.jpg" },
+          { name: "Teli Ka Mandir", img: "https://hblimg.mmtcdn.com/content/hubble/img/gwalior/mmt/activities/m_activities_gwalior_teli_ka_mandir_l_391_588.jpg" },
+          { name: "Sun Temple", img: "https://www.masalabox.co.in/wp-content/uploads/2019/12/Sun-temple-gwalior.jpg" },
+        ],
+        Delhi: [
+          { name: "Red Fort", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Delhi_fort.jpg/1200px-Delhi_fort.jpg" },
+          { name: "India Gate", img: "https://mediaim.expedia.com/destination/1/2d75301e5fa5840846672492693f1fb3.jpg" },
+          { name: "Qutub Minar", img: "http://1.bp.blogspot.com/-_A_hPMf6UXA/UPlIaFedKJI/AAAAAAAAALc/1ot1wZWv1Tg/s1600/Qutub+Minar.jpg" },
+          { name: "Lotus Temple", img: "https://www.kahajaun.com/wp-content/uploads/2020/03/Lotus-Temple-Delhi-Kahajaun-1200x900.jpg" },
+          { name: "Akshardham Temple", img: "https://images.mapsofworld.com/allwonders/2015/01/Akshardham.png" }
+        ],
+        Jaipur: [
+          { name: "Amber Fort", img: "https://tse1.mm.bing.net/th?id=OIP.YN__scci8c_E2twOBwNBCwHaEK&pid=Api&P=0&h=180" },
+          { name: "Hawa Mahal", img: "https://images.squarespace-cdn.com/content/v1/5a3bb03b4c326d76de73ddaa/57c33904-63b8-4116-8ae3-b858074ca92e/The+Common+Wanderer-6064-2.jpg" },
+          { name: "City Palace", img: "https://thumbs.dreamstime.com/z/city-palace-jaipur-rajasthan-india-city-palace-jaipur-rajasthan-india-city-palace-jaipur-rajasthan-india-city-palace-jaipur-jaipur-162012166.jpg" },
+          { name: "Jantar Mantar", img: "https://tse1.mm.bing.net/th?id=OIP.gkd4Z0MLO2gQ6-RDWh7rXQHaE8&pid=Api&P=0&h=180" },
+          { name: "Nahargarh Fort", img: "https://www.fabhotels.com/blog/wp-content/uploads/2019/06/Nahargarh-fort_600.jpg" }
+        ],
+        Vrindavan: [
+          { name: "Banke Bihari Temple", img: " https://merebankeybihari.com/wp-content/uploads/2022/11/image_750x_630046ddacc9d.jpg" },
+          { name: "Prem Mandir", img: "https://1.bp.blogspot.com/-yZPIA3u3vLI/XRiMQuF7iyI/AAAAAAAACRc/q30Ab5tlXz0E1eZ_9zvkHya3zDVop8_7wCEwYBhgL/s1600/IMG_20190630_151231.jpg    " },
+          { name: "ISKCON Temple", img: "https://www.trawell.in/admin/images/upload/941139367Vrindavan_ISKCON_Temple_Main.jpg" },
+          { name: "Radha Raman Temple", img: "https://www.tourmyindia.com/states/uttarpradesh/images/shri-radha-raman-temple-vrindavan.jpg" },
+          { name: "Nidhivan", img: "https://www.tourmyindia.com/blog/wp-content/uploads/2016/09/Nidhivan-in-Vrindavan.png" }
+        ],
+        Indore: [
+          { name: "Rajwada Palace", img: "https://thumbs.dreamstime.com/z/ancient-rajwada-indore-night-lights-royal-palace-decoration-statue-sculpture-ahilya-bai-holkar-also-seen-40777212.jpg          " },
+          { name: "Lal Bagh Palace", img: "https://miro.medium.com/v2/resize:fit:920/1*F8cGqPU3dkwbLszrRuXhFQ.png" },
+          { name: "Kanch Mandir", img: "https://pravase.co.in/admin_pravase/uploads/place/Kanch-Mandir-Temple-of-Glass-Jain-Temple-Indore_1638450638.JPG" },
+          { name: "Sarafa Bazaar", img: "https://i.ytimg.com/vi/iSf6sa0kW4s/maxresdefault.jpg" },
+          { name: "Patalpani Waterfall", img: "https://www.holidify.com/images/cmsuploads/compressed/Patalpani_Waterfall_20190116141322.jpg" },
+        ],
+        Noida: [
+          { name: "Worlds of Wonder", img: "https://delhitourism.travel/images/places-to-visit/headers/worlds-of-wonder-amusement-water-park-noida-tourism-entry-fee-timings-holidays-reviews-headerjpg.jpg" },
+          { name: "Botanical Garden", img: "https://travelsetu.com/apps/uploads/new_destinations_photos/destination/2024/01/05/008ea82e767dddda9c708ec4fc730f7e_1000x1000.jpg                                                      " },
+          { name: "Okhla Bird Sanctuary", img: " https://www.jovialholiday.com/wp-content/uploads/2023/01/Okhla-Bird-Sanctuary-1.jpg" },
+          { name: "DLF Mall of India", img: "https://www.scai.in/wp-content/uploads/2020/04/MOI-2.jpg" },
+          { name: "ISKCON Noida", img: "https://exploreyourway.in/wp-content/uploads/2023/05/ISKCON-Temple-Noida-1-1.jpg" },
+        ],
+        Gurgaon: [
+          { name: "Kingdom of Dreams", img: "https://www.holidify.com/images/compressed/attractions/attr_1838.jpg " },
+          { name: "Cyber Hub", img: " https://www.holidify.com/images/cmsuploads/compressed/1433580915_20171121175456.jpg                               " },
+          { name: "Ambience Mall", img: " https://www.nativeplanet.com/photos/929x523x90/2016/07/ambience-mall_14690844290.jpg    " },
+          { name: "Leisure Valley Park", img: "https://hblimg.mmtcdn.com/content/hubble/img/gurgaon_imgs/mmt/activities/m_Leisure_valley_park_2_l_360_640.jpg" },
+
+
+        ],
+        Mathura: [
+          { name: "Shri Krishna Janmabhoomi", img: "https://www.etajmahaltour.com/blog/wp-content/uploads/2019/12/Shri-Krishna-Janmasthan-Temple.jpg" },
+          { name: "Dwarkadhish Temple", img: "https://apnayatra.com/wp-content/uploads/2023/06/Dwarkadhish-Temple-Mathura.jpg" },
+          { name: "Vishram Ghat", img: "https://thumbs.dreamstime.com/b/dirt-garbage-removing-river-vishram-ghat-onyamuna-river-mathura-uttarpradesh-mar-dirt-garbage-removing-158653425.jpg" },
+          { name: "Kans Qila", img: "https://c8.alamy.com/comp/J18KHF/kans-fort-kans-quila-ratankund-chowk-bazar-mathura-uttar-pradesh-india-J18KHF.jpg" },
+          { name: "Radha khuda", img: "https://thumbs.dreamstime.com/b/radha-kund-uttar-pradesh-india-march-radha-kund-holy-pond-town-mathura-district-radha-kund-holy-pond-radha-kund-town-175015793.jpg" }
+        ],
+        Mumbai: [
+          { name: "Gateway of India", img: "https://3.bp.blogspot.com/-dQ1gcVL5A3o/Vhqj9ydvuQI/AAAAAAAAJ5U/uk1_d8CkHwM/s1600/Gateway-of-India-Nightview.jpg" },
+          { name: "Marine Drive", img: "https://static01.nyt.com/images/2019/10/21/travel/21mumbai-walkingtour2/merlin_162106725_227c3804-2c41-4f0d-a350-bf638b184ca1-superJumbo.jpg?quality=90&auto=webp" },
+          { name: "Elephanta Caves", img: "https://tse3.mm.bing.net/th?id=OIP.KDaBKVrYJKepv1Wyh_M11wHaE8&pid=Api&P=0&h=180" },
+          { name: "Siddhivinayak Temple", img: "https://emumbaitourism.com/wp-content/uploads/2023/04/Shri-Siddhivinayak-temple.jpg" },
+          { name: "CST Terminus", img: "https://i.pinimg.com/originals/99/7f/e8/997fe8c808eeeae5491bc5884e71fe5f.jpg" }
+        ],
+        Bangalore: [
+          { name: "Lalbagh Garden", img: "http://www.holidify.com/images/cmsuploads/compressed/l1_20170829182853.PNG" },
+          { name: "Bangalore Palace", img: "https://www.tourism-of-india.com/pictures/travel_guide/attractions/bangalore-palace-head-319.jpeg" },
+          { name: "Cubbon Park", img: "https://www.postoast.com/wp-content/uploads/2021/09/Cubbon-Park-Aerial-view.jpg" },
+          { name: "ISKCON Temple", img: "https://static2.tripoto.com/media/filter/nl/img/133889/TripDocument/1477214625_t01_day_view_of_the_temple_today.jpg" },
+          { name: "Vidhana Soudha", img: "https://thumbs.dreamstime.com/b/vidhana-soudha-bangalore-india-seat-state-legislature-karnataka-vidhana-soudha-bangalore-india-seat-258734188.jpg" }
+        ]
+      },
+      Australia: {
+        Sydney: [
+          { name: "Sydney Opera House", img: "https://www.tripsavvy.com/thmb/V6JxfYqOrA268Li6fra_jSlkcCA=/2121x1414/filters:fill(auto,1)/OperaHouse-755d893182dc4811b608eb1a99792fd7.jpg" },
+          { name: "Sydney Harbour Bridge", img: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/474000/474772-Australia.jpg" },
+          { name: "Bondi Beach", img: "https://i.pinimg.com/originals/4e/28/df/4e28df3819ec73d284fff11193bebee8.jpg" },
+          { name: "Taronga Zoo", img: "https://www.ytravelblog.com/wp-content/uploads/2011/09/taronga-Zoo-sydney-111.jpg" },
+          { name: "Darling Harbour", img: "https://tse4.mm.bing.net/th?id=OIP.pWgeLbZVbPaYMDP4vbem9wHaFj&pid=Api&P=0&h=180" }
+        ]
+      }
+    };
+
+    let map = L.map('map').setView([20.5937, 78.9629], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function addTrip() {
+      const countryInput = document.getElementById("country").value.trim();
+      const placeInput = document.getElementById("place").value.trim().toLowerCase();
+      const visitDate = document.getElementById("visitDate").value;
+      const placesList = document.getElementById("famousPlacesList");
+      placesList.innerHTML = "";
+
+      const countryKey = Object.keys(famousPlaces).find(
+        c => c.toLowerCase() === countryInput.toLowerCase()
+      );
+
+      if (countryKey && famousPlaces[countryKey]) {
+        const cities = famousPlaces[countryKey];
+        let found = false;
+
+        for (let city in cities) {
+          if (city.toLowerCase().includes(placeInput)) {
+            found = true;
+
+            cities[city].forEach(place => {
+              const li = document.createElement("li");
+              li.classList.add("place-item");
+
+              const content = document.createElement("div");
+              content.className = "place-item-content";
+
+              const img = document.createElement("img");
+              img.src = place.img;
+              img.className = "place-img";
+
+              const span = document.createElement("span");
+              span.innerText = `${place.name} (${city})`;
+
+              const dateInfo = document.createElement("div");
+              dateInfo.className = "visit-date";
+              dateInfo.innerText = visitDate ? `Visited on: ${visitDate}` : "Visited date not selected.";
+
+              content.appendChild(img);
+              content.appendChild(span);
+              li.appendChild(content);
+              li.appendChild(dateInfo);
+              placesList.appendChild(li);
+
+              const query = `${place.name}, ${city}, ${countryKey}`;
+              fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                  if (data.length > 0) {
+                    const lat = data[0].lat;
+                    const lon = data[0].lon;
+                    const popupText = `<b>${place.name}</b><br>${city}, ${countryKey}<br>${visitDate ? "Visited on: " + visitDate : ""}`;
+                    L.marker([lat, lon]).addTo(map)
+                      .bindPopup(popupText);
+                  }
+                });
+            });
+          }
+        }
+
+        if (!found) {
+          const li = document.createElement("li");
+          li.textContent = "No famous places found for this city.";
+          placesList.appendChild(li);
+        }
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "No famous places found for this country.";
+        placesList.appendChild(li);
+      }
+    }
+  </script>
+</body>
+
+</html>
